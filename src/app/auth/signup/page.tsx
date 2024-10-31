@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { TextInput } from "../components/TextInput";
 import { Label } from "../components/Label";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerUser } from "../api/userServices";
 import { useValidation } from "../hooks/useValidation";
 import { PersonTypeSelector } from "../components/PersonTypeSelector";
 import { PasswordInput } from "../components/PasswordInput";
+import { PersonTypeInput } from "../components/PersonTypeInput";
 
 export default function Signup() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function Signup() {
     validateCPF,
     validateCNPJ,
     validatePassword,
+    personTypeErrorMessage,
   } = useValidation();
 
   const [personType, setPersonType] = useState("Pessoa Física");
@@ -29,6 +31,11 @@ export default function Signup() {
   const [cnpj, setCnpj] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    setCpf("");
+    setCnpj("");
+  }, [personType]);
 
   async function handleSubmit(ev: FormEvent) {
     ev.preventDefault();
@@ -84,40 +91,14 @@ export default function Signup() {
           />
         </div>
 
-        <div>
-          {personType === "Pessoa Física" && (
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="cpf">CPF</Label>
-              <TextInput
-                type="text"
-                id="cpf"
-                onChange={(ev) => setCpf(ev.target.value)}
-                value={cpf}
-                required
-                isInvalid={isCpfInvalid}
-              />
-            </div>
-          )}
-          {personType === "Pessoa Jurídica" && (
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="cnpj">CNPJ</Label>
-              <TextInput
-                type="text"
-                id="cnpj"
-                onChange={(ev) => setCnpj(ev.target.value)}
-                value={cnpj}
-                required
-                isInvalid={isCnpjInvalid}
-              />
-            </div>
-          )}
-          {isCpfInvalid && (
-            <p className="text-red-500 text-sm mt-1 ml-1">CPF Inválido.</p>
-          )}
-          {isCnpjInvalid && (
-            <p className="text-red-500 text-sm mt-1 ml-1">CNPJ Inválido.</p>
-          )}
-        </div>
+        <PersonTypeInput 
+          id={personType === "Pessoa Física" ? "cpf" : "cnpj"}
+          label={personType === "Pessoa Física" ? "CPF" : "CNPJ"}
+          setState={personType === "Pessoa Física" ? setCpf : setCnpj}
+          value={personType === "Pessoa Física" ? cpf : cnpj}
+          isInvalid={personType === "Pessoa Física" ? isCpfInvalid : isCnpjInvalid}
+          errorMessage={personTypeErrorMessage}
+        />
 
         <div>
           <div className="flex items-center gap-2 max-[650px]:flex-col">

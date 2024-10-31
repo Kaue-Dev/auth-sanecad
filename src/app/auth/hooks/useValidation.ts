@@ -4,10 +4,12 @@ export function useValidation() {
   const [isCpfInvalid, setIsCpfInvalid] = useState(false);
   const [isCnpjInvalid, setIsCnpjInvalid] = useState(false);
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+  const [personTypeErrorMessage, setPersonTypeErrorMessage] = useState("");
 
   function validateCPF (cpf: string) {
     if (cpf.length !== 11) {
       setIsCpfInvalid(true);
+      setPersonTypeErrorMessage("O CPF deve conter 11 dígitos");
       return false;
     }
 
@@ -18,6 +20,7 @@ export function useValidation() {
   function validateCNPJ (cnpj: string) {
     if (cnpj.length !== 14) {
       setIsCnpjInvalid(true);
+      setPersonTypeErrorMessage("O CNPJ deve conter 14 dígitos");
       return false;
     }
 
@@ -44,6 +47,7 @@ export function useValidation() {
     isPasswordInvalid,
     validateCPF,
     validateCNPJ,
-    validatePassword
+    validatePassword,
+    personTypeErrorMessage,
   }
 }
