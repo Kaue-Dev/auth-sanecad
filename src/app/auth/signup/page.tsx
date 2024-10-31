@@ -3,57 +3,68 @@
 import Link from "next/link";
 import { TextInput } from "../components/TextInput";
 import { Label } from "../components/Label";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerUser } from "../api/userServices";
-import { useValidation } from "../hooks/useValidation";
 import { PersonTypeSelector } from "../components/PersonTypeSelector";
 import { PasswordInput } from "../components/PasswordInput";
 import { PersonTypeInput } from "../components/PersonTypeInput";
+import { useValidation } from "../hooks/useValidation";
+
+interface IFormValues {
+  personType: string;
+  fullName: string;
+  email: string;
+  cpf: string;
+  cnpj: string;
+  password: string;
+  confirmPassword: string;
+}
 
 export default function Signup() {
   const router = useRouter();
 
-  const {
-    isCpfInvalid,
-    isCnpjInvalid,
-    isPasswordInvalid,
-    validateCPF,
-    validateCNPJ,
-    validatePassword,
-    personTypeErrorMessage,
-  } = useValidation();
+  const [formData, setFormData] = useState<IFormValues>({
+    personType: "Pessoa Física",
+    fullName: "",
+    email: "",
+    cpf: "",
+    cnpj: "",
+    password: "",
+    confirmPassword: "",
+  })
 
-  const [personType, setPersonType] = useState("Pessoa Física");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { personType, fullName, email, cpf, cnpj, password, confirmPassword } = formData;
 
-  useEffect(() => {
-    setCpf("");
-    setCnpj("");
-  }, [personType]);
+  const [isCpfInvalid, setIsCpfInvalid] = useState(false);
+  const [isCnpjInvalid, setIsCnpjInvalid] = useState(false);
+  const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+
+  const { validateCPF, validateCNPJ, validatePassword } = useValidation();
 
   async function handleSubmit(ev: FormEvent) {
     ev.preventDefault();
 
     let isValid = true;
-    if (personType === "Pessoa Física" && !validateCPF(cpf)) isValid = false;
-    if (personType === "Pessoa Jurídica" && !validateCNPJ(cnpj)) isValid = false;
-    if (!validatePassword(password, confirmPassword)) isValid = false;
+    if (personType === "Pessoa Física") {
+      setIsCpfInvalid(!validateCPF(cpf));
+      isValid = isValid && validateCPF(cpf);
+    }
+    if (personType === "Pessoa Jurídica") {
+      setIsCnpjInvalid(!validateCNPJ(cnpj));
+      isValid = isValid && validateCNPJ(cnpj);
+    }
+    setIsPasswordInvalid(!validatePassword(password, confirmPassword));
     if (!isValid) return;
 
-    await registerUser({
+    const response = await registerUser({
       name: fullName,
       cpf: cpf || cnpj,
       email: email,
       password: password,
     })
-      .then(() => router.push("/"))
-      .catch((error) => console.error(error));
+
+    if (response?.ok) router.push("/")
   }
 
   return (
@@ -66,7 +77,7 @@ export default function Signup() {
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <PersonTypeSelector
           personType={personType}
-          setPersonType={setPersonType}
+          setPersonType={(value) => setFormData({ ...formData, personType: value })}
         />
 
         <div className="flex flex-col gap-1">
@@ -74,8 +85,8 @@ export default function Signup() {
           <TextInput
             type="text"
             id="nomeCompleto"
-            onChange={(ev) => setFullName(ev.target.value)}
             value={fullName}
+            onChange={(ev) => setFormData({ ...formData, fullName: ev.target.value })}
             required
           />
         </div>
@@ -85,8 +96,8 @@ export default function Signup() {
           <TextInput
             type="email"
             id="email"
-            onChange={(ev) => setEmail(ev.target.value)}
             value={email}
+            onChange={(ev) => setFormData({ ...formData, email: ev.target.value })}
             required
           />
         </div>
@@ -94,23 +105,23 @@ export default function Signup() {
         <PersonTypeInput 
           id={personType === "Pessoa Física" ? "cpf" : "cnpj"}
           label={personType === "Pessoa Física" ? "CPF" : "CNPJ"}
-          setState={personType === "Pessoa Física" ? setCpf : setCnpj}
+          setState={(value) => setFormData({ ...formData, [personType === "Pessoa Física" ? "cpf" : "cnpj"]: value })}
           value={personType === "Pessoa Física" ? cpf : cnpj}
           isInvalid={personType === "Pessoa Física" ? isCpfInvalid : isCnpjInvalid}
-          errorMessage={personTypeErrorMessage}
+          errorMessage={personType === "Pessoa Física" ? "CPF Inválido." : "CNPJ Inválido."}
         />
 
         <div>
           <div className="flex items-center gap-2 max-[650px]:flex-col">
             <PasswordInput
-              setPassword={setPassword}
+              setPassword={(value) => setFormData({ ...formData, password: value })}
               password={password}
               id="senha"
               label="Senha"
               isInvalid={isPasswordInvalid}
             />
             <PasswordInput
-              setPassword={setConfirmPassword}
+              setPassword={(value) => setFormData({ ...formData, confirmPassword: value })}
               password={confirmPassword}
               id="confirmarSenha"
               label="Confirmar Senha"

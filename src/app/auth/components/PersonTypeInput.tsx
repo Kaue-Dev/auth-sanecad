@@ -16,8 +16,9 @@ export function PersonTypeInput ({
   setState,
   value,
   isInvalid,
-  errorMessage
+  errorMessage,
 }: PersonTypeInputProps) {
+
   return (
     <div>
       <div className="flex flex-col gap-1">
@@ -25,7 +26,7 @@ export function PersonTypeInput ({
         <TextInput
           type="text"
           id={id}
-          onChange={ev => setState(ev.target.value)}
+          onChange={(ev) => setState(ev.target.value)}
           value={value}
           isInvalid={isInvalid}
           required

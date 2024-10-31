@@ -1,53 +1,41 @@
-import { useState } from "react";
-
 export function useValidation() {
-  const [isCpfInvalid, setIsCpfInvalid] = useState(false);
-  const [isCnpjInvalid, setIsCnpjInvalid] = useState(false);
-  const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
-  const [personTypeErrorMessage, setPersonTypeErrorMessage] = useState("");
+  function validateCPF(cpf: string): boolean {
+    cpf = cpf.replace(/\D/g, "");
 
-  function validateCPF (cpf: string) {
-    if (cpf.length !== 11) {
-      setIsCpfInvalid(true);
-      setPersonTypeErrorMessage("O CPF deve conter 11 dígitos");
-      return false;
-    }
+    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
 
-    setIsCpfInvalid(false);
-    return true;
+    const cpfArray = cpf.split("").map(Number);
+    const firstDigit =
+      cpfArray.slice(0, 9).reduce((acc, value, index) => acc + value * (10 - index), 0) % 11;
+    const checkFirstDigit = firstDigit < 2 ? 0 : 11 - firstDigit;
+
+    const secondDigit =
+      cpfArray.slice(0, 10).reduce((acc, value, index) => acc + value * (11 - index), 0) % 11;
+    const checkSecondDigit = secondDigit < 2 ? 0 : 11 - secondDigit;
+
+    return checkFirstDigit === cpfArray[9] && checkSecondDigit === cpfArray[10];
   }
 
-  function validateCNPJ (cnpj: string) {
-    if (cnpj.length !== 14) {
-      setIsCnpjInvalid(true);
-      setPersonTypeErrorMessage("O CNPJ deve conter 14 dígitos");
-      return false;
-    }
+  function validateCNPJ(cnpj: string): boolean {
+    cnpj = cnpj.replace(/\D/g, "");
 
-    setIsCnpjInvalid(false);
-    return true;
+    if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+
+    const cnpjArray = cnpj.split("").map(Number);
+    const firstDigit =
+      cnpjArray.slice(0, 12).reduce((acc, value, index) => acc + value * (5 - (index % 4)), 0) % 11;
+    const checkFirstDigit = firstDigit < 2 ? 0 : 11 - firstDigit;
+
+    const secondDigit =
+      cnpjArray.slice(0, 13).reduce((acc, value, index) => acc + value * (6 - (index % 5)), 0) % 11;
+    const checkSecondDigit = secondDigit < 2 ? 0 : 11 - secondDigit;
+
+    return checkFirstDigit === cnpjArray[12] && checkSecondDigit === cnpjArray[13]
   }
 
-  function validatePassword(password: string, confirmPassword: string) {
-    const passwordEqualsConfirmPassword = password === confirmPassword;
-    const passwordLengthIsValid = password.length >= 6;
-
-    if (!passwordEqualsConfirmPassword || !passwordLengthIsValid) {
-      setIsPasswordInvalid(true);
-      return false;
-    }
-
-    setIsPasswordInvalid(false);
-    return true;
+  function validatePassword(password: string, confirmPassword: string): boolean {
+    return password.length >= 8 && password === confirmPassword;
   }
 
-  return {
-    isCpfInvalid,
-    isCnpjInvalid,
-    isPasswordInvalid,
-    validateCPF,
-    validateCNPJ,
-    validatePassword,
-    personTypeErrorMessage,
-  }
+  return { validateCPF, validateCNPJ, validatePassword };
 }
