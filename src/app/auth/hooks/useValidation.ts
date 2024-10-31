@@ -22,15 +22,22 @@ export function useValidation() {
     if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
 
     const cnpjArray = cnpj.split("").map(Number);
+
+    const firstDigitWeights = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     const firstDigit =
-      cnpjArray.slice(0, 12).reduce((acc, value, index) => acc + value * (5 - (index % 4)), 0) % 11;
+      cnpjArray
+        .slice(0, 12)
+        .reduce((acc, value, index) => acc + value * firstDigitWeights[index], 0) % 11;
     const checkFirstDigit = firstDigit < 2 ? 0 : 11 - firstDigit;
 
+    const secondDigitWeights = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     const secondDigit =
-      cnpjArray.slice(0, 13).reduce((acc, value, index) => acc + value * (6 - (index % 5)), 0) % 11;
+      cnpjArray
+        .slice(0, 13)
+        .reduce((acc, value, index) => acc + value * secondDigitWeights[index], 0) % 11;
     const checkSecondDigit = secondDigit < 2 ? 0 : 11 - secondDigit;
 
-    return checkFirstDigit === cnpjArray[12] && checkSecondDigit === cnpjArray[13]
+    return checkFirstDigit === cnpjArray[12] && checkSecondDigit === cnpjArray[13];
   }
 
   function validatePassword(password: string, confirmPassword: string): boolean {
