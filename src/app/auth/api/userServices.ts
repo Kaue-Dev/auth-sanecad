@@ -10,9 +10,11 @@ interface userLoginData {
   password: string;
 }
 
+const URL = "http://localhost:8080/api/users";
+
 export async function registerUser(data: userData) {
   try {
-    const response = await fetch("http://localhost:8080/api/users", {
+    const response = await fetch(URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -25,5 +27,15 @@ export async function registerUser(data: userData) {
 }
 
 export async function loginUser(data: userLoginData) {
-  console.log(data);
+  try {
+    const response = await fetch(`${URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) return response;
+  } catch (error) {
+    console.error("ERROR", error);
+  }
 }
