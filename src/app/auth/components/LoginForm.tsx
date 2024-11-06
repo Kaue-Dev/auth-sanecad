@@ -12,9 +12,12 @@ import { FormEvent, useState } from "react";
 import { PasswordInput } from "../components/PasswordInput";
 import { loginUser } from "../api/userServices";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginForm() {
   const router = useRouter();
+
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState<IFormValues>({
     email: "",
@@ -24,7 +27,11 @@ export default function LoginForm() {
   async function handleSubmit(ev: FormEvent) {
     ev.preventDefault();
     const response = await loginUser(formData);
-    if (response?.ok) router.push("/");
+    if (response?.ok) {
+      const data = await response.json();
+      login(data.id);
+      router.push("/")
+    };
   }
 
   return (
